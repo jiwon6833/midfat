@@ -178,12 +178,12 @@ if [ "$NO_PACKAGES" -eq 0 ]; then
 	source "$PATHROOT/autosetup/packages/llvm.inc"
 
 	# shrinkaddrspace needs prelink(+libelf), patchelf, and pyelftools
-	source "$PATHROOT/autosetup/packages/libelf.inc"
-	source "$PATHROOT/autosetup/packages/prelink.inc"
-	source "$PATHROOT/autosetup/packages/patchelf.inc"
-	source "$PATHROOT/autosetup/packages/pyelftools.inc"
+	# source "$PATHROOT/autosetup/packages/libelf.inc"
+	# source "$PATHROOT/autosetup/packages/prelink.inc"
+	# source "$PATHROOT/autosetup/packages/patchelf.inc"
+	# source "$PATHROOT/autosetup/packages/pyelftools.inc"
 fi
-
+exit
 # Build baseline version of gperftools
 echo "downloading gperftools"
 cd "$PATHAUTOFRAMEWORKSRC"
