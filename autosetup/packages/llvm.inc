@@ -1,6 +1,6 @@
 echo "building LLVM"
 cd "$PATHAUTOPACKSRC"
-[ -d llvm/.git ] || run git clone git@github.com:jiwon6833/MTE_llvm8.git llvm
+[ -d llvm/.git ] || run git clone https://github.com/jiwon6833/MTE_llvm8.git llvm
 [ -d llvm/tools/clang/.git ] || run git clone -b release_80 --depth=1 https://git.llvm.org/git/clang.git/ llvm/tools/clang
 [ -d llvm/projects/compiler-rt/.git ] || run git clone -b release_80 --depth=1 https://git.llvm.org/git/compiler-rt.git/ llvm/projects/compiler-rt
 cd "$PATHAUTOPACKSRC/llvm"
