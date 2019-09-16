@@ -183,7 +183,7 @@ if [ "$NO_PACKAGES" -eq 0 ]; then
 	# source "$PATHROOT/autosetup/packages/patchelf.inc"
 	# source "$PATHROOT/autosetup/packages/pyelftools.inc"
 fi
-exit
+#exit
 # Build baseline version of gperftools
 echo "downloading gperftools"
 cd "$PATHAUTOFRAMEWORKSRC"
@@ -272,9 +272,9 @@ echo "building nothp"
 cd "$PATHROOT/nothp"
 run make
 
-echo "building shrinkaddrspace"
-cd "$PATHROOT/shrinkaddrspace"
-run make
+#echo "building shrinkaddrspace"
+#cd "$PATHROOT/shrinkaddrspace"
+#run make
 
 # Configure targets
 for instance in $INSTANCES; do
