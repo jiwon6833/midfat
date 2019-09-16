@@ -145,7 +145,7 @@ static void maskNestedPointers(Value *val, CompositeType *elTy,
         Type *ty = elTy->getTypeAtIndex(i);
 
         if (ty->isPointerTy()) {
-            DEBUG(dbgs() << "masking nested pointer of type " << *ty <<
+            LLVM_DEBUG(dbgs() << "masking nested pointer of type " << *ty <<
                     " in value: " << *val << "\n");
             indices.push_back(B.getInt32(i));
             Value *ptr = B.CreateInBoundsGEP(val, indices);
@@ -185,7 +185,7 @@ void MaskPointers::instrumentCallExtNestedPtrs(CallSite *CS) {
         Value *arg = CS->getArgOperand(i);
         Type *elTy = cast<PointerType>(arg->getType())->getElementType();
         assert(elTy->isAggregateType());
-        DEBUG(dbgs() << "mask nested pointers in arg " << i <<
+        LLVM_DEBUG(dbgs() << "mask nested pointers in arg " << i <<
                 " of:" << *CS->getInstruction() << "\n");
         maskNestedPointers(arg, cast<CompositeType>(elTy), indices, B);
     }

@@ -19,8 +19,9 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/Target/TargetLowering.h>
-#include <llvm/Target/TargetSubtargetInfo.h>
+//diwony
+#include <llvm/CodeGen/TargetLowering.h>
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/Transforms/Utils/Local.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
 #include <llvm/Analysis/ScalarEvolutionExpressions.h>
@@ -335,7 +336,7 @@ struct DummyPass : public FunctionPass {
             }
         }
 
-        DEBUG(errs() << "Tracked: " << tracked << "  Untracked: " << untracked << "\n");
+        LLVM_DEBUG(errs() << "Tracked: " << tracked << "  Untracked: " << untracked << "\n");
 
         delete SM;
 
@@ -364,7 +365,7 @@ struct DummyPass : public FunctionPass {
         std::string functionName;
         //declare i64 @metabaseget(i64)
         functionName = "metabaseget";
-        MetabasegetFunc = M->getOrInsertFunction(functionName, IntPtrTy, IntPtrTy, NULL);
+        MetabasegetFunc = M->getOrInsertFunction(functionName, IntPtrTy, IntPtrTy);
         //declare iM @metaget_deep(i64)
         if (DeepMetadata)
             functionName = "metaget_deep_" + std::to_string(DeepMetadataBytes);
@@ -372,28 +373,28 @@ struct DummyPass : public FunctionPass {
             functionName = "metaget_fixed_" + std::to_string(MetadataBytes);
         else
             functionName = "metaget_" + std::to_string(MetadataBytes);
-        MetagetFunc = M->getOrInsertFunction(functionName, IntMetaTy, IntPtrTy, NULL);
+        MetagetFunc = M->getOrInsertFunction(functionName, IntMetaTy, IntPtrTy);
         //declare iM @metaget_base_deep(i64, i64. i64)
         if (DeepMetadata)
             functionName = "metaget_base_deep_" + std::to_string(DeepMetadataBytes);
         else
             functionName = "metaget_base_" + std::to_string(MetadataBytes);
-        MetagetWithBaseFunc = M->getOrInsertFunction(functionName, IntMetaTy, IntPtrTy, IntPtrTy, IntPtrTy, NULL);
+        MetagetWithBaseFunc = M->getOrInsertFunction(functionName, IntMetaTy, IntPtrTy, IntPtrTy, IntPtrTy);
         //declare void @metacheck(iM, iM)
         if (DeepMetadata)
             functionName = "metacheck_" + std::to_string(DeepMetadataBytes);
         else
             functionName = "metacheck_" + std::to_string(MetadataBytes);
-        MetacheckFunc = M->getOrInsertFunction(functionName, VoidTy, IntMetaTy, IntMetaTy, NULL);
+        MetacheckFunc = M->getOrInsertFunction(functionName, VoidTy, IntMetaTy, IntMetaTy);
         //declare i64 @metaset_alignment(i64, i64, iM, i64)
         if (!FixedCompression) {
             functionName = "metaset_alignment_" + std::to_string(MetadataBytes);
             MetasetFunc = M->getOrInsertFunction(functionName, IntPtrTy,
-                IntPtrTy, IntPtrTy, IntMetaTy, IntPtrTy, NULL);
+                IntPtrTy, IntPtrTy, IntMetaTy, IntPtrTy);
         } else {
             functionName = "metaset_fixed_" + std::to_string(MetadataBytes);
             MetasetFunc = M->getOrInsertFunction(functionName, IntPtrTy,
-                IntPtrTy, IntPtrTy, IntMetaTy, NULL);
+                IntPtrTy, IntPtrTy, IntMetaTy);
         }
 
         SM = new SafetyManager(DL, &getAnalysis<ScalarEvolutionWrapperPass>().getSE());

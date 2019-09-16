@@ -18,8 +18,9 @@
 #include <llvm/IR/InstIterator.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/Target/TargetLowering.h>
-#include <llvm/Target/TargetSubtargetInfo.h>
+//diwony
+#include <llvm/CodeGen/TargetLowering.h>
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/Transforms/Utils/Local.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
 #include <llvm/Analysis/ScalarEvolution.h>
@@ -39,15 +40,13 @@ cl::opt<unsigned long> MetadataBytes ("METALLOC_METADATABYTES", cl::desc("Number
         clEnumVal(2, ""),
         clEnumVal(4, ""),
         clEnumVal(8, ""),
-        clEnumVal(16, ""),
-       clEnumValEnd));
+        clEnumVal(16, "")));
 cl::opt<bool> DeepMetadata ("METALLOC_DEEPMETADATA", cl::desc("Enable multi-level METADATA"), cl::init(true));
 cl::opt<unsigned long> DeepMetadataBytes ("METALLOC_DEEPMETADATABYTES", cl::desc("Number of bytes for second level METADATA"), cl::init(8),
     cl::values(
         clEnumVal(8, ""),
         clEnumVal(16, ""),
-        clEnumVal(32, ""),
-        clEnumValEnd));
+        clEnumVal(32, "")));
 
 /// Rewrite an SCEV expression for a memory access address to an expression that
 /// represents offset from the given alloca.
@@ -113,7 +112,7 @@ bool SafetyManager::IsAccessSafe(Value *Addr, unsigned long AccessSize,
       ConstantRange(APInt(BitWidth, 0), APInt(BitWidth, AllocaSize));
   bool Safe = AllocaRange.contains(AccessRange);
 
-  DEBUG(dbgs() << "[SafeStack] "
+  LLVM_DEBUG(dbgs() << "[SafeStack] "
                << (isa<AllocaInst>(AllocaPtr) ? "Alloca " : "ByValArgument ")
                << *AllocaPtr << "\n"
                << "            Access " << *Addr << "\n"
@@ -169,7 +168,7 @@ bool SafetyManager::IsSafeStackAlloca(const Value *AllocaPtr, unsigned long Allo
       case Instruction::Store: {
         if (V == I->getOperand(0)) {
           // Stored the pointer - conservatively assume it may be unsafe.
-          DEBUG(dbgs() << "[SafeStack] Unsafe alloca: " << *AllocaPtr
+          LLVM_DEBUG(dbgs() << "[SafeStack] Unsafe alloca: " << *AllocaPtr
                        << "\n            store of address: " << *I << "\n");
           return false;
         }
@@ -196,7 +195,7 @@ bool SafetyManager::IsSafeStackAlloca(const Value *AllocaPtr, unsigned long Allo
 
         if (const MemIntrinsic *MI = dyn_cast<MemIntrinsic>(I)) {
           if (!IsMemIntrinsicSafe(MI, UI, AllocaPtr, AllocaSize)) {
-            DEBUG(dbgs() << "[SafeStack] Unsafe alloca: " << *AllocaPtr
+            LLVM_DEBUG(dbgs() << "[SafeStack] Unsafe alloca: " << *AllocaPtr
                          << "\n            unsafe memintrinsic: " << *I
                          << "\n");
             return false;
@@ -216,7 +215,7 @@ bool SafetyManager::IsSafeStackAlloca(const Value *AllocaPtr, unsigned long Allo
           if (A->get() == V)
             if (!(CS.doesNotCapture(A - B) && (CS.doesNotAccessMemory(A - B) ||
                                                CS.doesNotAccessMemory()))) {
-              DEBUG(dbgs() << "[SafeStack] Unsafe alloca: " << *AllocaPtr
+              LLVM_DEBUG(dbgs() << "[SafeStack] Unsafe alloca: " << *AllocaPtr
                            << "\n            unsafe call: " << *I << "\n");
               return false;
             }

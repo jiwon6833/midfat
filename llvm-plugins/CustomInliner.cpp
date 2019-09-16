@@ -7,7 +7,8 @@
 
 #include <llvm/Transforms/IPO/InlinerPass.h>
 #include <llvm/Analysis/InlineCost.h>
-
+//diwony
+#include "llvm/IR/CallSite.h"
 #include <metadata.h>
 
 using namespace llvm;
@@ -23,11 +24,11 @@ struct CustomInliner : public Inliner {
             if (ISMETADATAFUNC(func_name.str().c_str()) ||
                     func_name == "lookup_metaptr" ||
                     func_name == "checkptr") {
-                return InlineCost::getAlways();
+              return InlineCost::getAlways("diwony:always");
             }
 	}
 
-        return InlineCost::getNever();
+        return InlineCost::getNever("diwony:undefined?");
     }
 
 

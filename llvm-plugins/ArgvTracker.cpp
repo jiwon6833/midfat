@@ -18,8 +18,9 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/Target/TargetLowering.h>
-#include <llvm/Target/TargetSubtargetInfo.h>
+//diwony
+#include <llvm/CodeGen/TargetLowering.h>
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/Transforms/Utils/Local.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
 
@@ -43,7 +44,7 @@ struct ArgvTracker : public FunctionPass {
 
 	/* we only do main */
 	if (F.getName() != "main") return false;
-	DEBUG(errs() << "ArgvTracker: found main");
+	LLVM_DEBUG(errs() << "ArgvTracker: found main");
 
 	/* prepare some types and constants */
 	Module *mod = F.getParent();
@@ -74,9 +75,9 @@ struct ArgvTracker : public FunctionPass {
 	Value* arg_argc = (args == F.arg_end()) ? NULL : args++;
 	Value* arg_argv = (args == F.arg_end()) ? NULL : args++;
 	Value* arg_envp = (args == F.arg_end()) ? NULL : args++;
-	DEBUG(errs() << "ArgvTracker: " << (arg_argc ? "found" : "did not find") << " argc");
-	DEBUG(errs() << "ArgvTracker: " << (arg_argv ? "found" : "did not find") << " argv");
-	DEBUG(errs() << "ArgvTracker: " << (arg_envp ? "found" : "did not find") << " envp");
+	LLVM_DEBUG(errs() << "ArgvTracker: " << (arg_argc ? "found" : "did not find") << " argc");
+	LLVM_DEBUG(errs() << "ArgvTracker: " << (arg_argv ? "found" : "did not find") << " argv");
+	LLVM_DEBUG(errs() << "ArgvTracker: " << (arg_envp ? "found" : "did not find") << " envp");
 	if (arg_argc && !arg_argc->getType()->isIntegerTy()) {
 		errs() << "warning: ArgvTracker: incorrect argc type for function main\n";
 	}
@@ -88,7 +89,7 @@ struct ArgvTracker : public FunctionPass {
 	}
 
 	/* insert at the start of the function */
-	Instruction *firstInstruction = F.getEntryBlock().getFirstInsertionPt();
+	Instruction *firstInstruction = &*F.getEntryBlock().getFirstInsertionPt();
 	IRBuilder<> Builder(firstInstruction);
 
 	/* create a local for argv to be able to pass a pointer to it */

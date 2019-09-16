@@ -1,7 +1,7 @@
 CC=g++
 INCLUDES=-I. -I../staticlib -I../metapagetable
-CFLAGS=-c -Werror -Wall -std=c++0x -g `llvm-config --cxxflags` -O0
-LDFLAGS=-g -shared
+CFLAGS=-c -fPIC -Werror -Wall -std=c++0x -g `llvm-config --cxxflags` -O0
+LDFLAGS=-g -shared `llvm-config --ldflags --libs`
 TARGETDIR=.
 OBJDIR=$(TARGETDIR)/obj
 GOLDINSTDIR=$(METALLOC_HOME)/autosetup.dir/install/common

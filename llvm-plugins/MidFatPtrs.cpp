@@ -28,6 +28,9 @@
 #include "MetaPointerUtils.h"
 #include "PointerSink.h"
 
+//diwony
+#include "llvm-c/Core.h"
+
 /* Disable certains steps of the pass for partial numbers/testing */
 
 using namespace llvm;
@@ -89,10 +92,10 @@ static Instruction *getInsertPointAfter(Instruction *ins) {
     }
 
     if (isa<PHINode>(ins))
-        return ins->getParent()->getFirstInsertionPt();
+      return &*ins->getParent()->getFirstInsertionPt();
 
-    assert(!isa<TerminatorInst>(ins));
-    return std::next(BasicBlock::iterator(ins));
+    assert(!ins->isTerminator());
+    return &*std::next(BasicBlock::iterator(ins));
 }
 
 static inline Value *maskPointer(Value *ptr, IRBuilder<> &B) {
@@ -268,7 +271,7 @@ static void maskNestedPointers(Value *val, CompositeType *elTy,
         Type *ty = elTy->getTypeAtIndex(i);
 
         if (ty->isPointerTy()) {
-            DEBUG(dbgs() << "masking nested pointer of type " << *ty <<
+            LLVM_DEBUG(dbgs() << "masking nested pointer of type " << *ty <<
                     " in value: " << *val << "\n");
             indices.push_back(B.getInt32(i));
             Value *ptr = B.CreateInBoundsGEP(val, indices);
@@ -308,7 +311,7 @@ void MidFatPtrs::instrumentCallExtNestedPtrs(CallSite *CS) {
         Value *arg = CS->getArgOperand(i);
         Type *elTy = cast<PointerType>(arg->getType())->getElementType();
         assert(elTy->isAggregateType());
-        DEBUG(dbgs() << "mask nested pointers in arg " << i <<
+        LLVM_DEBUG(dbgs() << "mask nested pointers in arg " << i <<
                 " of:" << *CS->getInstruction() << "\n");
         maskNestedPointers(arg, cast<CompositeType>(elTy), indices, B);
     }
@@ -435,7 +438,8 @@ static Function *createMetaPtrLookupHelper(Module &M) {
 
     ConstantInt *PageTableInt = B.getInt64((unsigned long long)pageTable);
     ConstantInt *PageSize = B.getInt64(METALLOC_PAGESIZE);
-    Value *PtrInt = F->getArgumentList().begin();
+    //Value *PtrInt = F->getArgumentList().begin();
+    Value *PtrInt = F->arg_begin();
     Value *PageTable = B.CreateIntToPtr(PageTableInt, i64->getPointerTo(), "pagetable");
     Value *Page = B.CreateUDiv(PtrInt, PageSize, "page");
     Value *EntryPtr = B.CreateInBoundsGEP(PageTable, Page, "entry_ptr");

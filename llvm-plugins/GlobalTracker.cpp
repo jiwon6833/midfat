@@ -17,8 +17,9 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/Target/TargetLowering.h>
-#include <llvm/Target/TargetSubtargetInfo.h>
+//diwony
+#include <llvm/CodeGen/TargetLowering.h>
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/Transforms/Utils/Local.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
 
@@ -158,15 +159,16 @@ struct GlobalTracker : public ModulePass {
             //declare i64 @metaset(i64, i64, iM, i64)
             std::string functionName = "metaset_alignment_safe_" + std::to_string(MetadataBytes);
             MetasetFunc = M->getOrInsertFunction(functionName, IntPtrTy,
-                IntPtrTy, IntPtrTy, IntMetaTy, IntPtrTy, NULL);
+                IntPtrTy, IntPtrTy, IntMetaTy, IntPtrTy);
         } else {
             //declare i64 @metaset_fixed(i64, i64, iM)
             std::string functionName = "metaset_fixed_" + std::to_string(MetadataBytes);
+            //diwony: remove null in getOrInsertFunction?
             MetasetFunc = M->getOrInsertFunction(functionName, IntPtrTy,
-                IntPtrTy, IntPtrTy, IntMetaTy, NULL);
+                IntPtrTy, IntPtrTy, IntMetaTy);
         }
         //declare void @initialize_global_metadata()
-        GlobalInitFunc = (Function*)M->getOrInsertFunction("initialize_global_metadata", VoidTy, NULL);
+        GlobalInitFunc = (Function*)M->getOrInsertFunction("initialize_global_metadata", VoidTy);
 
         initialized = true;
 
