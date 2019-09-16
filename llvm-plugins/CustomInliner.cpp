@@ -5,7 +5,8 @@
  *      Author: haller
  */
 
-#include <llvm/Transforms/IPO/InlinerPass.h>
+//#include <llvm/Transforms/IPO/InlinerPass.h>
+#include <llvm/Transforms/IPO/Inliner.h>
 #include <llvm/Analysis/InlineCost.h>
 //diwony
 #include "llvm/IR/CallSite.h"
@@ -13,10 +14,12 @@
 
 using namespace llvm;
 
-struct CustomInliner : public Inliner {
+struct CustomInliner : public LegacyInlinerBase {
+//struct CustomInliner : public Inliner {
     static char ID;
 
-    CustomInliner() : Inliner(ID) {}
+  //CustomInliner() : Inliner(ID) {}
+  CustomInliner() : LegacyInlinerBase(ID) {}
 
     InlineCost getInlineCost(CallSite CS) {
         if (Function *Callee = CS.getCalledFunction()) {
