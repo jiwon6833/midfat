@@ -29,7 +29,7 @@ corecount="`grep '^processor' /proc/cpuinfo|wc -l`"
 : ${VERSIONAUTOMAKE=automake-1.15}
 : ${VERSIONBASH=bash-4.3}
 : ${VERSIONBINUTILS=binutils-2.26.1}
-: ${VERSIONCMAKE=cmake-3.4.1}
+: ${VERSIONCMAKE=cmake-3.4.3}
 : ${VERSIONCMAKEURL=v3.4}
 : ${VERSIONCOREUTILS=coreutils-8.22}
 : ${VERSIONLIBTOOL=libtool-2.4.6}
@@ -169,7 +169,7 @@ if [ "$NO_PACKAGES" -eq 0 ]; then
 	source "$PATHROOT/autosetup/packages/libtool.inc"
 
 	# build cmake, needed to build LLVM
-	source "$PATHROOT/autosetup/packages/cmake.inc"
+	#source "$PATHROOT/autosetup/packages/cmake.inc"
 
 	# gperftools requires libunwind
 	source "$PATHROOT/autosetup/packages/libunwind.inc"
@@ -178,10 +178,10 @@ if [ "$NO_PACKAGES" -eq 0 ]; then
 	source "$PATHROOT/autosetup/packages/llvm.inc"
 
 	# shrinkaddrspace needs prelink(+libelf), patchelf, and pyelftools
-	source "$PATHROOT/autosetup/packages/libelf.inc"
-	source "$PATHROOT/autosetup/packages/prelink.inc"
-	source "$PATHROOT/autosetup/packages/patchelf.inc"
-	source "$PATHROOT/autosetup/packages/pyelftools.inc"
+	#source "$PATHROOT/autosetup/packages/libelf.inc"
+	#source "$PATHROOT/autosetup/packages/prelink.inc"
+	#source "$PATHROOT/autosetup/packages/patchelf.inc"
+	#source "$PATHROOT/autosetup/packages/pyelftools.inc"
 fi
 
 # Build baseline version of gperftools
@@ -272,9 +272,9 @@ echo "building nothp"
 cd "$PATHROOT/nothp"
 run make
 
-echo "building shrinkaddrspace"
-cd "$PATHROOT/shrinkaddrspace"
-run make
+#echo "building shrinkaddrspace"
+#cd "$PATHROOT/shrinkaddrspace"
+#run make
 
 # Configure targets
 for instance in $INSTANCES; do
