@@ -71,9 +71,9 @@ struct ArgvTracker : public FunctionPass {
 
 	/* fetch the argc  */
 	Function::arg_iterator args = F.arg_begin();
-	Value* arg_argc = (args == F.arg_end()) ? NULL : args++;
-	Value* arg_argv = (args == F.arg_end()) ? NULL : args++;
-	Value* arg_envp = (args == F.arg_end()) ? NULL : args++;
+	Value* arg_argc = (args == F.arg_end()) ? NULL : &*args++;
+	Value* arg_argv = (args == F.arg_end()) ? NULL : &*args++;
+	Value* arg_envp = (args == F.arg_end()) ? NULL : &*args++;
 	DEBUG(errs() << "ArgvTracker: " << (arg_argc ? "found" : "did not find") << " argc");
 	DEBUG(errs() << "ArgvTracker: " << (arg_argv ? "found" : "did not find") << " argv");
 	DEBUG(errs() << "ArgvTracker: " << (arg_envp ? "found" : "did not find") << " envp");
@@ -88,7 +88,7 @@ struct ArgvTracker : public FunctionPass {
 	}
 
 	/* insert at the start of the function */
-	Instruction *firstInstruction = F.getEntryBlock().getFirstInsertionPt();
+	Instruction *firstInstruction = &*F.getEntryBlock().getFirstInsertionPt();
 	IRBuilder<> Builder(firstInstruction);
 
 	/* create a local for argv to be able to pass a pointer to it */

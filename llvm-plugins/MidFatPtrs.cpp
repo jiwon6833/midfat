@@ -89,10 +89,10 @@ static Instruction *getInsertPointAfter(Instruction *ins) {
     }
 
     if (isa<PHINode>(ins))
-        return ins->getParent()->getFirstInsertionPt();
+      return &*ins->getParent()->getFirstInsertionPt();
 
     assert(!isa<TerminatorInst>(ins));
-    return std::next(BasicBlock::iterator(ins));
+    return &*std::next(BasicBlock::iterator(ins));
 }
 
 static inline Value *maskPointer(Value *ptr, IRBuilder<> &B) {
@@ -435,7 +435,8 @@ static Function *createMetaPtrLookupHelper(Module &M) {
 
     ConstantInt *PageTableInt = B.getInt64((unsigned long long)pageTable);
     ConstantInt *PageSize = B.getInt64(METALLOC_PAGESIZE);
-    Value *PtrInt = F->getArgumentList().begin();
+    //Value *PtrInt = F->getArgumentList().begin();
+    Value *PtrInt = &*F->arg_begin();
     Value *PageTable = B.CreateIntToPtr(PageTableInt, i64->getPointerTo(), "pagetable");
     Value *Page = B.CreateUDiv(PtrInt, PageSize, "page");
     Value *EntryPtr = B.CreateInBoundsGEP(PageTable, Page, "entry_ptr");

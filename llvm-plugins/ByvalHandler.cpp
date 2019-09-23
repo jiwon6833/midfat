@@ -59,7 +59,7 @@ struct ByvalHandler : public FunctionPass {
             Argument *Arg = dyn_cast<Argument>(&a);
             unsigned long Size = SM->GetByvalArgumentSize(Arg);
             if (Arg->hasByValAttr() && !SM->IsSafeStackAlloca(Arg, Size)) {
-                IRBuilder<> B(F.getEntryBlock().getFirstInsertionPt());
+                IRBuilder<> B(&*F.getEntryBlock().getFirstInsertionPt());
                 Value *NewAlloca = B.CreateAlloca(Arg->getType()->getPointerElementType());
                 Arg->replaceAllUsesWith(NewAlloca);
                 Value *Src = B.CreatePointerCast(Arg, PtrVoidTy);
