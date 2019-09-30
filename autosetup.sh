@@ -78,6 +78,28 @@ run()
 	fi
 }
 
+run2()
+{
+    echo -------------------------------------------------------------------------------- >&5
+    echo "command:          $*"               >&5
+    echo "\$PATH:            $PATH"            >&5
+    echo "\$LD_LIBRARY_PATH: $LD_LIBRARY_PATH" >&5
+    echo "working dir:      $PWD"             >&5
+    echo -------------------------------------------------------------------------------- >&5
+    success=0
+    if [ "$logsuffix" = "" ]; then
+	pathlog="$PATHLOG"
+	"$@" >&5 2>&5 && success=1
+    else
+	pathlog="$PATHLOG.$logsuffix.txt"
+	echo "logging to $pathlog" >&5
+	"$@" > "$pathlog" 2>&1 && success=1
+    fi
+    if [ "$success" -ne 0 ]; then
+	echo "[done]" >&5
+    fi
+    }
+
 getpythonpath()
 {
 	local pythonpath=""
@@ -219,9 +241,9 @@ for instance in $INSTANCES; do
 		echo "building gperftools-$instance"
 		run mkdir -p "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
 		cd "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
-		[ -f Makefile ] || run "$PATHAUTOFRAMEWORKSRC/gperftools/configure" --prefix="$PATHAUTOPREFIXBASE/$instance"
-		run make -j"$JOBS"
-		run make install
+		[ -f Makefile ] || run "$PATHAUTOFRAMEWORKSRC/gperftools/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --host=riscv64-unknown-linux-gnu --enable-minimal
+		run2 make
+		run2 make install
 		;;
 	tcmalloc-metalloc)
 		# modified tcmalloc
@@ -238,9 +260,9 @@ for instance in $INSTANCES; do
 		echo "building gperftools-$instance"
 		run mkdir -p "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
 		cd "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
-		[ -f Makefile ] || run "$PATHROOT/gperftools-metalloc/configure" --prefix="$PATHAUTOPREFIXBASE/$instance"
-		run make METAPAGETABLEDIR="$metapagetabledir" -j"$JOBS"
-		run make METAPAGETABLEDIR="$metapagetabledir" install
+		[ -f Makefile ] || run "$PATHROOT/gperftools-metalloc/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --host=riscv64-unknown-linux-gnu
+		run2 make METAPAGETABLEDIR="$metapagetabledir"
+		run2 make METAPAGETABLEDIR="$metapagetabledir" install
 
 		echo "building staticlib-$instance"
 		cd "$PATHROOT/staticlib"
