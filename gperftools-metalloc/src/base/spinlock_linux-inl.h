@@ -51,12 +51,13 @@ static struct InitModule {
     int x = 0;
     // futexes are ints, so we can use them only when
     // that's the same size as the lockword_ in SpinLock.
+    /*
     have_futex = (sizeof (Atomic32) == sizeof (int) &&
                   sys_futex(&x, FUTEX_WAKE, 1, NULL, NULL, 0) >= 0);
     if (have_futex &&
         sys_futex(&x, FUTEX_WAKE | futex_private_flag, 1, NULL, NULL, 0) < 0) {
       futex_private_flag = 0;
-    }
+      }*/
   }
 } init_module;
 
@@ -71,30 +72,32 @@ void SpinLockDelay(volatile Atomic32 *w, int32 value, int loop) {
     int save_errno = errno;
     struct timespec tm;
     tm.tv_sec = 0;
-    if (have_futex) {
-      tm.tv_nsec = base::internal::SuggestedDelayNS(loop);
-    } else {
+    // if (have_futex) {
+    //   tm.tv_nsec = base::internal::SuggestedDelayNS(loop);
+    // } else {
       tm.tv_nsec = 2000001;   // above 2ms so linux 2.4 doesn't spin
-    }
-    if (have_futex) {
-      tm.tv_nsec *= 16;  // increase the delay; we expect explicit wakeups
-      sys_futex(reinterpret_cast<int *>(const_cast<Atomic32 *>(w)),
-                FUTEX_WAIT | futex_private_flag,
-                value, reinterpret_cast<struct kernel_timespec *>(&tm),
-                NULL, 0);
-    } else {
+    // }
+    // if (have_futex) {
+    //   tm.tv_nsec *= 16;  // increase the delay; we expect explicit wakeups
+    //   sys_futex(reinterpret_cast<int *>(const_cast<Atomic32 *>(w)),
+    //             FUTEX_WAIT | futex_private_flag,
+    //             value, reinterpret_cast<struct kernel_timespec *>(&tm),
+    //             NULL, 0);
+    // } else {
       nanosleep(&tm, NULL);
-    }
+      //    }
     errno = save_errno;
   }
 }
 
 void SpinLockWake(volatile Atomic32 *w, bool all) {
+  /*
   if (have_futex) {
     sys_futex(reinterpret_cast<int *>(const_cast<Atomic32 *>(w)),
               FUTEX_WAKE | futex_private_flag, all? INT_MAX : 1,
               NULL, NULL, 0);
   }
+  */
 }
 
 } // namespace internal

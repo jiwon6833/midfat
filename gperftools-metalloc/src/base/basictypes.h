@@ -358,7 +358,8 @@ class AssignAttributeStartEnd {
 #   define CACHELINE_ALIGNED __attribute__((aligned(64)))
     // implementation specific, Cortex-A53 and 57 should have 64 bytes
 # else
-#   error Could not determine cache line length - unknown architecture
+#   define CACHELINE_ALIGNED __attribute__((aligned(64)))
+//#   error Could not determine cache line length - unknown architecture
 # endif
 #else
 # define CACHELINE_ALIGNED

@@ -43,8 +43,9 @@ __attribute__((visibility ("hidden"), constructor(-1))) void initialize_global_m
 	/* char *stack_end; */
 	/* __asm__("mov %%rsp, %0" : "=R" (stack_end)); */
 	/* char *stack_start = stack_end - rlim.rlim_cur; */
-	/* initialize_metadata(stack_start, stack_end); */
-             } 
+	initialize_metadata((char*)0x3fff800000, (char*)0x3fffffffff);
+        //initialize_metadata(stack_start, stack_end);
+             }
     return;
 }
 

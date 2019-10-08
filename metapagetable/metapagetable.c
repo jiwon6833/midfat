@@ -9,9 +9,10 @@
 
 // Size of the pagetable (one entry per page)
 #if FLAGS_METALLOC_FIXEDCOMPRESSION == false
-#define PAGETABLESIZE (((unsigned long)1 << 48) / METALLOC_PAGESIZE)
+#define PAGETABLESIZE (((unsigned long)1 << 38) / METALLOC_PAGESIZE)
+//#define PAGETABLESIZE ((unsigned long)(0x1000000000))
 #else
-#define PAGETABLESIZE (((unsigned long)1 << 48) / ((METALLOC_FIXEDSIZE / FLAGS_METALLOC_METADATABYTES) * 16))
+#define PAGETABLESIZE (((unsigned long)1 << 38) / ((METALLOC_FIXEDSIZE / FLAGS_METALLOC_METADATABYTES) * 16))
 #endif
 // Number of pagetable pages covered by each reftable entry
 #define PTPAGESPERREFENTRY 1

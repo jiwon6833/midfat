@@ -275,9 +275,9 @@ for instance in $INSTANCES; do
 	esac
 done
 
-echo "building llvm-plugins"
-cd "$PATHROOT/llvm-plugins"
-run make -j"$JOBS" GOLDINSTDIR="$PATHAUTOPREFIX" TARGETDIR="$PATHLLVMPLUGINS"
+#echo "building llvm-plugins"
+#cd "$PATHROOT/llvm-plugins"
+#run make -j"$JOBS" GOLDINSTDIR="$PATHAUTOPREFIX" TARGETDIR="$PATHLLVMPLUGINS"
 
 echo "initializing targets"
 for target in $TARGETS; do

@@ -12,7 +12,8 @@ extern "C" {
 #define METALLOC_FIXEDSIZE (1 << METALLOC_FIXEDSHIFT)
 
 //extern unsigned long pageTable[];
-#define pageTable ((unsigned long*)(0x400000000000))
+//#define pageTable ((unsigned long*)(0x400000000000))
+#define pageTable ((unsigned long*)(0x3000000000)) 
 extern int is_fixed_compression();
 extern void page_table_init();
 extern void* allocate_metadata(unsigned long size, unsigned long alignment);
