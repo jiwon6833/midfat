@@ -8,7 +8,7 @@ CFLAGS += -O3
 
 EXE=$(OBJDIR)/libmetadata.a
 
-SRCS    := $(wildcard *.c)
+SRCS    := $(wildcard *.c) 
 OBJS    := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 DEPS    := $(OBJS:.o=.d)
 

@@ -24,11 +24,13 @@ __attribute__((visibility ("hidden"), constructor(-1))) void initialize_global_m
 	/* code, data, bss, ... all assumed to be together */
         Dl_info info = {};
         if (!dladdr(initialize_global_metadata, &info)) {
-            perror("initialize_global_metadata: dladdr failed");
+          printf("failed\n");
+          //perror("initialize_global_metadata: dladdr failed");
 	    exit(-1);
         }
 	char *global_start = info.dli_fbase;
 	char *global_end = &_end;
+
 	initialize_metadata(global_start, global_end);
 
 	/* stack metadata should not be used as objects are supposed to be moved
@@ -43,7 +45,7 @@ __attribute__((visibility ("hidden"), constructor(-1))) void initialize_global_m
 	/* char *stack_end; */
 	/* __asm__("mov %%rsp, %0" : "=R" (stack_end)); */
 	/* char *stack_start = stack_end - rlim.rlim_cur; */
-	initialize_metadata((char*)0x3fff800000, (char*)0x3fffffffff);
+	initialize_metadata((char*)0x3fff900000, (char*)0x3fffffffff);
         //initialize_metadata(stack_start, stack_end);
              }
     return;

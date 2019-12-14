@@ -1,9 +1,8 @@
 PAGESIZE:= $(shell getconf PAGESIZE)
-CC=libtool --tag=CC --mode=compile riscv64-unknown-linux-gnu-gcc -prefer-pic
-LINKER=libtool --tag=CC --mode=link riscv64-unknown-linux-gnu-gcc
+CC=libtool --tag=CC --mode=compile gcc -prefer-pic
+LINKER=libtool --tag=CC --mode=link gcc 
 INCLUDES=-I. -I../gperftools-metalloc/src/ -I$(OBJDIR)
-CFLAGS= -fPIC -c -Werror -Wall -O3 -std=gnu99 -DSYSTEM_PAGESIZE=$(PAGESIZE) -nostdinc  -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/lib/gcc/riscv64-unknown-linux-gnu/5.3.0/include -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/lib/gcc/riscv64-unknown-linux-gnu/5.3.0/include-fixed -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/riscv64-unknown-linux-gnu/include -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/sysroot/usr/include
-
+CFLAGS=-fPIC -c -Werror -Wall -O0 -std=gnu11 -DSYSTEM_PAGESIZE=$(PAGESIZE) -g -fno-inline
 LDFLAGS=-static
 OBJDIR=obj
 

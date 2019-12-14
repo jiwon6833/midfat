@@ -69,12 +69,34 @@ meta##size metaget_##size (unsigned long ptrInt) {  \
     return *(meta##size *)metaptr;                  \
 }
 
+
+
+meta8 metaget_8 (unsigned long ptrInt) {
+    unsigned long page = ptrInt / METALLOC_PAGESIZE;
+    unsigned long entry = pageTable[page];
+    /*if (unlikely(entry == 0)) {                     \
+        meta##size zero;                            \
+        for (int i = 0; i < sizeof(meta##size) /    \
+                        sizeof(unsigned long); ++i) \
+            ((unsigned long*)&zero)[i] = 0;         \
+        return zero;                                \
+    }*/
+    //printf("metaget8: ptrInt %lu, page %lu, entry %lu\n", ptrInt, page, entry);
+    unsigned long alignment = entry & 0xFF;
+    char *metabase = (char*)(entry >> 8);
+    unsigned long pageOffset = ptrInt -(page * METALLOC_PAGESIZE);
+    char *metaptr = metabase + ((pageOffset >>alignment)*8);
+    //printf("metaptr %x\n", *metaptr);
+    return *(meta8*)metaptr;
+}
+
+
 #endif /* !MIDFAT_POINTERS */
 
 CREATE_METAGET(1)
 CREATE_METAGET(2)
 CREATE_METAGET(4)
-CREATE_METAGET(8)
+//CREATE_METAGET(8)
 CREATE_METAGET(16)
 
 #ifdef MIDFAT_POINTERS
