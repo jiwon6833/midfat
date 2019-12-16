@@ -4,9 +4,9 @@ source "$PATHROOT/autosetup/passes/helper/lto.inc"
 # tcmalloc settings
 CONFIG_MALLOC=tcmalloc-metalloc
 CONFIG_FIXEDCOMPRESSION=false
-CONFIG_METADATABYTES=8
+CONFIG_METADATABYTES=16
 CONFIG_DEEPMETADATA=false
-CONFIG_DEEPMETADATABYTES=8
+CONFIG_DEEPMETADATABYTES=16
 
 # passes
 add_lto_args -argvtracker

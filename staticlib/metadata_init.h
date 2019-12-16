@@ -3,10 +3,13 @@
 #include <metadata.h>
 #include <metapagetable_core.h>
 
+
 static void initialize_metadata(char *start, char *end) {
         if (start > end) {
-            fprintf(stderr, "initialize_metadata: bad address range %p-%p\n", start, end);
-	    exit(-1);
+          //fprintf(stderr, "initialize_metadata: bad address range %p-%p\n", start, end);
+          printf("initialize_metadata: bad address range %p-%p\n", start, end);
+	    //exit(-1);
+            return;
         }
 
         unsigned long page_align_offset = METALLOC_PAGESIZE - 1;

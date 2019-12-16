@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static char **strarrcopy(char **arr) {
+static __attribute__((noinline)) char **strarrcopy(char **arr) {
     int count = 0, i;
     char **newarr;
 
@@ -26,11 +26,11 @@ static char **strarrcopy(char **arr) {
     return newarr;
 }
 
-void argvcopy(char ***argvptr, char ***envpptr) {
+void  __attribute__((noinline)) argvcopy(char ***argvptr, char ***envpptr){
     extern char **environ;
 
     if (argvptr) *argvptr = strarrcopy(*argvptr);
-    assert(!envpptr || !*envpptr || environ == *envpptr);
-    environ = strarrcopy(environ);
-    if (envpptr) *envpptr = environ;
+    //assert(!envpptr || !*envpptr || environ == *envpptr);
+    //environ = strarrcopy(environ);
+    //if (envpptr) *envpptr = environ;
 }

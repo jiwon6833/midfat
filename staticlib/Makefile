@@ -1,10 +1,10 @@
 CC=clang
 METAPAGETABLEDIR=../metapagetable
 INCLUDES=-I. -I$(METAPAGETABLEDIR)
-CFLAGS=-target riscv64-unknown-linux-gnu -c -Werror -Wall -flto -fPIC -std=gnu11 -mriscv=RV64IMAFD -nostdinc  -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/lib/gcc/riscv64-unknown-linux-gnu/5.3.0/include -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/lib/gcc/riscv64-unknown-linux-gnu/5.3.0/include-fixed -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/riscv64-unknown-linux-gnu/include -isystem /home/jsshin/projects/riscv/all_tools_linux/riscv/sysroot/usr/include
+CFLAGS=-c -Werror -Wall -flto -fPIC -std=gnu11 -g -fno-inline
 OBJDIR=./obj
 
-CFLAGS += -O3
+CFLAGS += -O0
 
 EXE=$(OBJDIR)/libmetadata.a
 

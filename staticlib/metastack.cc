@@ -22,6 +22,9 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/user.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <sys/mman.h>
 
 #include "interception.h"
 #include "sanitizer_common/sanitizer_common.h"
@@ -66,11 +69,12 @@
 
 /// Minimum stack alignment for the unsafe stack.
 const unsigned kMetaStackAlignBits = 6;
-const unsigned kMetaStackAlign = 1 << kMetaStackAlignBits;
+//const unsigned kMetaStackAlign = 1 << kMetaStackAlignBits;
 
 /// Default size of the unsafe stack. This value is only used if the stack
 /// size rlimit is set to infinity.
-const unsigned kDefaultTrackedStackSize = 0x2800000;
+//FIXME
+//const unsigned kDefaultTrackedStackSize = 0x2800000;
 
 /// Runtime page size obtained through sysconf
 static unsigned pageSize;
@@ -100,33 +104,36 @@ static inline void unsafe_stack_alloc_meta(void *addr, unsigned long size) {
     void *metadata = allocate_metadata(size, alignment);
     set_metapagetable_entries(addr, size, metadata, alignment);
 }
-
+/*
 static inline void unsafe_stack_free_meta(void *unsafe_stack_start, unsigned long unsafe_stack_size) {
     unsigned long alignment = kMetaStackAlignBits;
     deallocate_metadata(unsafe_stack_start, unsafe_stack_size, alignment);
 }
-
+*/
 static inline void *unsafe_stack_alloc(size_t size, size_t guard) {
-  CHECK_GE(size + guard, size);
-  void *addr = MmapOrDie(size + guard, "tracked_stack_alloc");
-  MprotectNoAccess((uptr)addr, (uptr)guard);
-  unsafe_stack_alloc_meta((char *)addr + guard, size);
-  
-  return (char *)addr + guard;
+  //CHECK_GE(size + guard, size);
+  //void *addr = MmapOrDie(size + guard, "tracked_stack_alloc");
+  void *addr = mmap(nullptr, size,
+                           PROT_READ | PROT_WRITE,
+                           MAP_PRIVATE | MAP_ANON, -1, 0);
+  //MprotectNoAccess((uptr)addr, (uptr)guard);
+  unsafe_stack_alloc_meta((char *)addr, size);
+
+  return (char *)addr;
 }
 
 static inline void unsafe_stack_setup(void *start, size_t size, size_t guard) {
-  CHECK_GE((char *)start + size, (char *)start);
-  CHECK_GE((char *)start + guard, (char *)start);
+  //CHECK_GE((char *)start + size, (char *)start);
+  //CHECK_GE((char *)start + guard, (char *)start);
   void *stack_ptr = (char *)start + size;
-  CHECK_EQ((((size_t)stack_ptr) & (kMetaStackAlign - 1)), 0);
+  //CHECK_EQ((((size_t)stack_ptr) & (kMetaStackAlign - 1)), 0);
   
   __metastack_tracked_stack_ptr = stack_ptr;
   unsafe_stack_start = start;
   unsafe_stack_size = size;
   unsafe_stack_guard = guard;
 }
-
+/*
 static void unsafe_stack_free() {
   if (unsafe_stack_start) {
     UnmapOrDie((char *)unsafe_stack_start - unsafe_stack_guard,
@@ -135,9 +142,9 @@ static void unsafe_stack_free() {
   }
   unsafe_stack_start = nullptr;
 }
-
+*/
 /// Thread data for the cleanup handler
-static pthread_key_t thread_cleanup_key;
+//static pthread_key_t thread_cleanup_key;
 
 /// Safe stack per-thread information passed to the thread_start function
 struct tinfo {
@@ -151,6 +158,7 @@ struct tinfo {
 
 /// Wrap the thread function in order to deallocate the unsafe stack when the
 /// thread terminates by returning from its main function.
+/*
 static void *thread_start(void *arg) {
   struct tinfo *tinfo = (struct tinfo *)arg;
 
@@ -168,22 +176,22 @@ static void *thread_start(void *arg) {
 
   return start_routine(start_routine_arg);
 }
-
+*/
 /// Thread-specific data destructor
-static void thread_cleanup_handler(void *_iter) {
-  // We want to free the unsafe stack only after all other destructors
-  // have already run. We force this function to be called multiple times.
-  // User destructors that might run more then PTHREAD_DESTRUCTOR_ITERATIONS-1
-  // times might still end up executing after the unsafe stack is deallocated.
-  size_t iter = (size_t)_iter;
-  if (iter < PTHREAD_DESTRUCTOR_ITERATIONS) {
-    pthread_setspecific(thread_cleanup_key, (void *)(iter + 1));
-  } else {
-    // This is the last iteration
-    unsafe_stack_free();
-  }
-}
-
+// static void thread_cleanup_handler(void *_iter) {
+//   // We want to free the unsafe stack only after all other destructors
+//   // have already run. We force this function to be called multiple times.
+//   // User destructors that might run more then PTHREAD_DESTRUCTOR_ITERATIONS-1
+//   // times might still end up executing after the unsafe stack is deallocated.
+//   size_t iter = (size_t)_iter;
+//   if (iter < PTHREAD_DESTRUCTOR_ITERATIONS) {
+//     pthread_setspecific(thread_cleanup_key, (void *)(iter + 1));
+//   } else {
+//     // This is the last iteration
+//     unsafe_stack_free();
+//   }
+// }
+/*
 /// Intercept thread creation operation to allocate and setup the unsafe stack
 INTERCEPTOR(int, pthread_create, pthread_t *thread,
             const pthread_attr_t *attr,
@@ -219,20 +227,24 @@ INTERCEPTOR(int, pthread_create, pthread_t *thread,
 
   return REAL(pthread_create)(thread, attr, thread_start, tinfo);
 }
-
-extern "C" __attribute__((visibility("default")))
+*/
+extern "C" __attribute__((visibility("hidden")))
 #if !SANITIZER_CAN_USE_PREINIT_ARRAY
 // On ELF platforms, the constructor is invoked using .preinit_array (see below)
-__attribute__((constructor(0)))
+__attribute__((constructor(-1)))
 #endif
 void __metastack_init() {
   // Determine the stack size for the main thread.
-  size_t size = kDefaultTrackedStackSize;
+  //FIXME
+  //size_t size = kDefaultTrackedStackSize;
+  size_t size = 0x850000;
   size_t guard = 4096;
 
-  struct rlimit limit;
-  if (getrlimit(RLIMIT_STACK, &limit) == 0 && limit.rlim_cur != RLIM_INFINITY)
-    size = limit.rlim_cur;
+  //FIXME
+  //  struct rlimit limit;
+  //FIXME 
+  //  if (getrlimit(RLIMIT_STACK, &limit) == 0 && limit.rlim_cur != RLIM_INFINITY)
+  //  size = limit.rlim_cur;
   
   // Allocate unsafe stack for main thread
   void *addr = unsafe_stack_alloc(size, guard);
@@ -241,10 +253,10 @@ void __metastack_init() {
   pageSize = sysconf(_SC_PAGESIZE);
 
   // Initialize pthread interceptors for thread allocation
-  INTERCEPT_FUNCTION(pthread_create);
+  //INTERCEPT_FUNCTION(pthread_create);
 
   // Setup the cleanup handler
-  pthread_key_create(&thread_cleanup_key, thread_cleanup_handler);
+  //pthread_key_create(&thread_cleanup_key, thread_cleanup_handler);
 }
 
 #if SANITIZER_CAN_USE_PREINIT_ARRAY

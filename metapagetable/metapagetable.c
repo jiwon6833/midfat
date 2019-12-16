@@ -9,10 +9,9 @@
 
 // Size of the pagetable (one entry per page)
 #if FLAGS_METALLOC_FIXEDCOMPRESSION == false
-#define PAGETABLESIZE (((unsigned long)1 << 38) / METALLOC_PAGESIZE)
-//#define PAGETABLESIZE ((unsigned long)(0x1000000000))
+#define PAGETABLESIZE (((unsigned long)1 << 48) / METALLOC_PAGESIZE)
 #else
-#define PAGETABLESIZE (((unsigned long)1 << 38) / ((METALLOC_FIXEDSIZE / FLAGS_METALLOC_METADATABYTES) * 16))
+#define PAGETABLESIZE (((unsigned long)1 << 48) / ((METALLOC_FIXEDSIZE / FLAGS_METALLOC_METADATABYTES) * 16))
 #endif
 // Number of pagetable pages covered by each reftable entry
 #define PTPAGESPERREFENTRY 1
@@ -37,7 +36,7 @@ int is_fixed_compression() {
 
 void page_table_init() {
     if (unlikely(!isPageTableAlloced)) {
-        void *pageTableMap = mmap(pageTable, PAGETABLESIZE * sizeof(unsigned long), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
+        void *pageTableMap = sys_mmap(pageTable, PAGETABLESIZE * sizeof(unsigned long), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
         if (pageTableMap == MAP_FAILED) {
             perror("Could not allocate pageTable");
             exit(-1);
@@ -59,7 +58,7 @@ void* allocate_metadata(unsigned long size, unsigned long alignment) {
     unsigned long pageAlignOffset = SYSTEM_PAGESIZE - 1;
     unsigned long pageAlignMask = ~((unsigned long)SYSTEM_PAGESIZE - 1);
     unsigned long metadataSize = (((size * FLAGS_METALLOC_METADATABYTES) >> alignment) + pageAlignOffset) & pageAlignMask;
-    void *metadata = mmap(NULL, metadataSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+    void *metadata = sys_mmap(NULL, metadataSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
     if (unlikely(metadata == MAP_FAILED)) {
         perror("Could not allocate metadata");
         exit(-1);
