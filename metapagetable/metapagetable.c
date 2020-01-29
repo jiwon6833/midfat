@@ -9,7 +9,11 @@
 
 // Size of the pagetable (one entry per page)
 #if FLAGS_METALLOC_FIXEDCOMPRESSION == false
+#ifdef RISCV
 #define PAGETABLESIZE (((unsigned long)1 << 48) / METALLOC_PAGESIZE)
+#else
+#define PAGETABLESIZE (((unsigned long)1 << 38) / METALLOC_PAGESIZE)
+#endif
 #else
 #define PAGETABLESIZE (((unsigned long)1 << 48) / ((METALLOC_FIXEDSIZE / FLAGS_METALLOC_METADATABYTES) * 16))
 #endif
@@ -31,87 +35,103 @@ bool isPageTableAlloced = false;
 //unsigned short refTable[REFTABLESIZE];
 
 int is_fixed_compression() {
-    return FLAGS_METALLOC_FIXEDCOMPRESSION ? 1 : 0;
+  return FLAGS_METALLOC_FIXEDCOMPRESSION ? 1 : 0;
 }
 
 void page_table_init() {
-    if (unlikely(!isPageTableAlloced)) {
-        void *pageTableMap = sys_mmap(pageTable, PAGETABLESIZE * sizeof(unsigned long), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
-        if (pageTableMap == MAP_FAILED) {
-            perror("Could not allocate pageTable");
-            exit(-1);
-        }
-        isPageTableAlloced = true;
+  if (unlikely(!isPageTableAlloced)) {
+    #ifdef RISCV
+    void *pageTableMap = mmap(pageTable, PAGETABLESIZE * sizeof(unsigned long), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
+    if (pageTableMap == MAP_FAILED) {
+      perror("Could not allocate pageTable");
+      exit(-1);
     }
+    #else
+    void *pageTableMap = sys_mmap(pageTable, PAGETABLESIZE * sizeof(unsigned long), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
+    if (pageTableMap == MAP_FAILED) {
+      perror("Could not allocate pageTable");
+      exit(-1);
+    }
+    #endif
+    isPageTableAlloced = true;
+  }
 }
 
 __attribute__((section(".init_array"), used))
 void (*init_func1)(void) = page_table_init;
 
 bool is_metapagetable_alloced() {
-    return isPageTableAlloced;
+  return isPageTableAlloced;
 }
 
 void* allocate_metadata(unsigned long size, unsigned long alignment) {
-    /*if (unlikely(isPageTableAlloced == false))
-        page_table_init();*/
-    unsigned long pageAlignOffset = SYSTEM_PAGESIZE - 1;
-    unsigned long pageAlignMask = ~((unsigned long)SYSTEM_PAGESIZE - 1);
-    unsigned long metadataSize = (((size * FLAGS_METALLOC_METADATABYTES) >> alignment) + pageAlignOffset) & pageAlignMask;
-    void *metadata = sys_mmap(NULL, metadataSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
-    if (unlikely(metadata == MAP_FAILED)) {
-        perror("Could not allocate metadata");
-        exit(-1);
-    }
-    return metadata;
+  /*if (unlikely(isPageTableAlloced == false))
+    page_table_init();*/
+  unsigned long pageAlignOffset = SYSTEM_PAGESIZE - 1;
+  unsigned long pageAlignMask = ~((unsigned long)SYSTEM_PAGESIZE - 1);
+  unsigned long metadataSize = (((size * FLAGS_METALLOC_METADATABYTES) >> alignment) + pageAlignOffset) & pageAlignMask;
+  #ifdef RISCV
+  void *metadata = mmap(NULL, metadataSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+  if (unlikely(metadata == MAP_FAILED)) {
+    perror("Could not allocate metadata");
+    exit(-1);
+  }
+  #else
+  void *metadata = sys_mmap(NULL, metadataSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+  if (unlikely(metadata == MAP_FAILED)) {
+    perror("Could not allocate metadata");
+    exit(-1);
+  }
+  #endif
+  return metadata;
 }
 
 void deallocate_metadata(void *ptr, unsigned long size, unsigned long alignment) {
-    unsigned long pageAlignOffset = SYSTEM_PAGESIZE - 1;
-    unsigned long pageAlignMask = ~((unsigned long)SYSTEM_PAGESIZE - 1);
-    unsigned long metadata = pageTable[((unsigned long)ptr) / METALLOC_PAGESIZE] >> 8;
-    unsigned long metadataSize = (((size * FLAGS_METALLOC_METADATABYTES) >> alignment) + pageAlignOffset) & pageAlignMask;
-    munmap((void*)metadata, metadataSize);
-    return;
+  unsigned long pageAlignOffset = SYSTEM_PAGESIZE - 1;
+  unsigned long pageAlignMask = ~((unsigned long)SYSTEM_PAGESIZE - 1);
+  unsigned long metadata = pageTable[((unsigned long)ptr) / METALLOC_PAGESIZE] >> 8;
+  unsigned long metadataSize = (((size * FLAGS_METALLOC_METADATABYTES) >> alignment) + pageAlignOffset) & pageAlignMask;
+  munmap((void*)metadata, metadataSize);
+  return;
 }
 
 void set_metapagetable_entries(void *ptr, unsigned long size, void *metaptr, int alignment) {
-    if (unlikely(isPageTableAlloced == false))
-        page_table_init();
-    if (unlikely(size % METALLOC_PAGESIZE != 0)) {
-        printf("Meta-pagetable must be configured for ranges that are multiple of METALLOC_PAGESIZE");
-        exit(-1);
-    }
-    // Get the page number
-    unsigned long page = (unsigned long)ptr / METALLOC_PAGESIZE;
-    // Get the page count
-    unsigned long count = size / METALLOC_PAGESIZE;
-    // For each page set the appropriate pagetable entry
-    for (unsigned long i = 0; i < count; ++i) {
-        // Compute the pointer towards the metadata
-        // Shift the pointer by 8 positions to the left
-        // Inject the alignment to the lower byte
-        unsigned long metaOffset = (i * METALLOC_PAGESIZE >> alignment) * FLAGS_METALLOC_METADATABYTES;
-        unsigned long pageMetaptr;
-        if (metaptr == 0)
-            pageMetaptr = 0;
-        else
-            pageMetaptr = (unsigned long)metaptr + metaOffset;
-        pageTable[page + i] = (pageMetaptr << 8) | (char)alignment;
-    }
+  if (unlikely(isPageTableAlloced == false))
+    page_table_init();
+  if (unlikely(size % METALLOC_PAGESIZE != 0)) {
+    printf("Meta-pagetable must be configured for ranges that are multiple of METALLOC_PAGESIZE");
+    exit(-1);
+  }
+  // Get the page number
+  unsigned long page = (unsigned long)ptr / METALLOC_PAGESIZE;
+  // Get the page count
+  unsigned long count = size / METALLOC_PAGESIZE;
+  // For each page set the appropriate pagetable entry
+  for (unsigned long i = 0; i < count; ++i) {
+    // Compute the pointer towards the metadata
+    // Shift the pointer by 8 positions to the left
+    // Inject the alignment to the lower byte
+    unsigned long metaOffset = (i * METALLOC_PAGESIZE >> alignment) * FLAGS_METALLOC_METADATABYTES;
+    unsigned long pageMetaptr;
+    if (metaptr == 0)
+      pageMetaptr = 0;
+    else
+      pageMetaptr = (unsigned long)metaptr + metaOffset;
+    pageTable[page + i] = (pageMetaptr << 8) | (char)alignment;
+  }
 }
 
 unsigned long get_metapagetable_entry(void *ptr) {
-    if (unlikely(isPageTableAlloced == false))
-        page_table_init();
-    // Get the page number
-    unsigned long page = (unsigned long)ptr / METALLOC_PAGESIZE;
-    // Get table entry
-    return pageTable[page];
+  if (unlikely(isPageTableAlloced == false))
+    page_table_init();
+  // Get the page number
+  unsigned long page = (unsigned long)ptr / METALLOC_PAGESIZE;
+  // Get table entry
+  return pageTable[page];
 }
 
 void allocate_metapagetable_entries(void *ptr, unsigned long size) {
-    /*if (unlikely(size % METALLOC_PAGESIZE != 0)) {
+  /*if (unlikely(size % METALLOC_PAGESIZE != 0)) {
         printf("Meta-pagetable must be configured for ranges that are multiple of METALLOC_PAGESIZE");
         exit(-1);
     }
@@ -140,11 +160,11 @@ void allocate_metapagetable_entries(void *ptr, unsigned long size) {
         potentialMaxRefCount = REALPAGESPERREFENTRY;
         // Move to the next ref entry
         ++i;
-    }*/
+        }*/
 }
 
 void deallocate_metapagetable_entries(void *ptr, unsigned long size) {
-    /*if (unlikely(size % METALLOC_PAGESIZE != 0)) {
+  /*if (unlikely(size % METALLOC_PAGESIZE != 0)) {
         printf("Meta-pagetable must be configured for ranges that are multiple of METALLOC_PAGESIZE");
         exit(-1);
     }
@@ -178,6 +198,5 @@ void deallocate_metapagetable_entries(void *ptr, unsigned long size) {
         potentialMaxRefCount = REALPAGESPERREFENTRY;
         // Move to the next ref entry
         ++i;
-    }*/
+        }*/
 }
-

@@ -14,12 +14,12 @@ static __attribute__((noinline)) char **strarrcopy(char **arr) {
 
     newarr = malloc(sizeof(char *) * (count + 1));
     if (!newarr) {
-	perror("argvcopy: malloc failed");
+	printf("argvcopy: malloc failed");
 	exit(-1);
     }
     for (i = 0; i < count; i++) {
 	if (!(newarr[i] = strdup(arr[i]))) {
-	    perror("argvcopy: strdup failed");
+	    printf("argvcopy: strdup failed");
 	    exit(-1);
 	}
     }

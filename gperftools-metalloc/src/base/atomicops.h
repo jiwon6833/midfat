@@ -121,7 +121,10 @@
 #elif defined(__GNUC__) && GCC_VERSION >= 40700
 #include "base/atomicops-internals-gcc.h"
 #else
-#error You need to implement atomic operations for this architecture
+//#error You need to implement atomic operations for this architecture
+//#include "base/atomicops-internals-arm-generic.h"
+//#include "base/atomicops-internals-gcc.h"
+#include "base/atomicops-riscv.h"
 #endif
 
 // Signed type that can hold a pointer and supports the atomic ops below, as

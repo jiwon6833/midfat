@@ -1,8 +1,16 @@
 PAGESIZE:= $(shell getconf PAGESIZE)
 CC=libtool --tag=CC --mode=compile gcc -prefer-pic
-LINKER=libtool --tag=CC --mode=link gcc 
+LINKER=libtool --tag=CC --mode=link gcc
 INCLUDES=-I. -I../gperftools-metalloc/src/ -I$(OBJDIR)
+ifeq ($(TEST),0)
+CC=libtool --tag=CC --mode=compile gcc -prefer-pic
+LINKER=libtool --tag=CC --mode=link gcc
 CFLAGS=-fPIC -c -Werror -Wall -O0 -std=gnu11 -DSYSTEM_PAGESIZE=$(PAGESIZE) -g -fno-inline
+else
+CC=libtool --tag=CC --mode=compile clang -prefer-pic
+LINKER=libtool --tag=CC --mode=link clang 
+CFLAGS=-target riscv64-unknown-linux-gnu -fPIC -c -Werror -Wall -O0 -std=gnu11 -DSYSTEM_PAGESIZE=$(PAGESIZE) -g -fno-inline -mriscv=RV64IMAFD -nostdinc -isystem /home/jwseo/workspace/MTE/riscv/lowrisc-chip/riscv/lib/gcc/riscv-linux/4.6.1/include -isystem /home/jwseo/workspace/MTE/riscv/lowrisc-chip/riscv/lib/gcc/riscv-linux/4.6.1/include-fixed -isystem /home/jwseo/workspace/MTE/riscv/lowrisc-chip/riscv/riscv-linux/include -isystem /home/jwseo/workspace/MTE/riscv/lowrisc-chip/sysroot/usr/include -DRISCV
+endif
 LDFLAGS=-static
 OBJDIR=obj
 

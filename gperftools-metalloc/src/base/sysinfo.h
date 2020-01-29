@@ -46,6 +46,7 @@
 #endif
 #include <stddef.h>    // for size_t
 #include <limits.h>    // for PATH_MAX
+#define PATH_MAX 4096
 #include "base/basictypes.h"
 #include "base/logging.h"   // for RawFD
 

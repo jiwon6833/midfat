@@ -61,6 +61,8 @@
 #include "base/sysinfo.h"
 #include "internal_logging.h"
 
+#define PATH_MAX 4096
+
 // TODO(sanjay): Move the code below into the tcmalloc namespace
 using tcmalloc::kLog;
 using tcmalloc::kCrash;

@@ -89,20 +89,20 @@ static unsigned pageSize;
 //
 // For now, store it in a thread-local variable.
 extern "C" {
-__attribute__((visibility(
-    "default"))) __thread void *__metastack_tracked_stack_ptr = nullptr;
+  __attribute__((visibility(
+                            "default")))  void *__metastack_tracked_stack_ptr = nullptr;
 }
 
 // Per-thread unsafe stack information. It's not frequently accessed, so there
 // it can be kept out of the tcb in normal thread-local variables.
-static __thread void *unsafe_stack_start = nullptr;
-static __thread size_t unsafe_stack_size = 0;
-static __thread size_t unsafe_stack_guard = 0;
+static  void *unsafe_stack_start = nullptr;
+static  size_t unsafe_stack_size = 0;
+static  size_t unsafe_stack_guard = 0;
 
 static inline void unsafe_stack_alloc_meta(void *addr, unsigned long size) {
-    unsigned long alignment = kMetaStackAlignBits;
-    void *metadata = allocate_metadata(size, alignment);
-    set_metapagetable_entries(addr, size, metadata, alignment);
+  unsigned long alignment = kMetaStackAlignBits;
+  void *metadata = allocate_metadata(size, alignment);
+  set_metapagetable_entries(addr, size, metadata, alignment);
 }
 /*
 static inline void unsafe_stack_free_meta(void *unsafe_stack_start, unsigned long unsafe_stack_size) {
@@ -114,8 +114,8 @@ static inline void *unsafe_stack_alloc(size_t size, size_t guard) {
   //CHECK_GE(size + guard, size);
   //void *addr = MmapOrDie(size + guard, "tracked_stack_alloc");
   void *addr = mmap(nullptr, size,
-                           PROT_READ | PROT_WRITE,
-                           MAP_PRIVATE | MAP_ANON, -1, 0);
+                    PROT_READ | PROT_WRITE,
+                    MAP_PRIVATE | MAP_ANON, -1, 0);
   //MprotectNoAccess((uptr)addr, (uptr)guard);
   unsafe_stack_alloc_meta((char *)addr, size);
 
@@ -127,7 +127,7 @@ static inline void unsafe_stack_setup(void *start, size_t size, size_t guard) {
   //CHECK_GE((char *)start + guard, (char *)start);
   void *stack_ptr = (char *)start + size;
   //CHECK_EQ((((size_t)stack_ptr) & (kMetaStackAlign - 1)), 0);
-  
+
   __metastack_tracked_stack_ptr = stack_ptr;
   unsafe_stack_start = start;
   unsafe_stack_size = size;
@@ -137,11 +137,11 @@ static inline void unsafe_stack_setup(void *start, size_t size, size_t guard) {
 static void unsafe_stack_free() {
   if (unsafe_stack_start) {
     UnmapOrDie((char *)unsafe_stack_start - unsafe_stack_guard,
-               unsafe_stack_size + unsafe_stack_guard);
+    unsafe_stack_size + unsafe_stack_guard);
     unsafe_stack_free_meta(unsafe_stack_start, unsafe_stack_size);
-  }
-  unsafe_stack_start = nullptr;
-}
+    }
+    unsafe_stack_start = nullptr;
+    }
 */
 /// Thread data for the cleanup handler
 //static pthread_key_t thread_cleanup_key;
@@ -242,10 +242,10 @@ void __metastack_init() {
 
   //FIXME
   //  struct rlimit limit;
-  //FIXME 
+  //FIXME
   //  if (getrlimit(RLIMIT_STACK, &limit) == 0 && limit.rlim_cur != RLIM_INFINITY)
   //  size = limit.rlim_cur;
-  
+
   // Allocate unsafe stack for main thread
   void *addr = unsafe_stack_alloc(size, guard);
 
@@ -264,17 +264,17 @@ void __metastack_init() {
 // On other platforms we use the constructor attribute to arrange to run our
 // initialization early.
 extern "C" {
-__attribute__((section(".preinit_array"),
-               used)) void (*__metastack_preinit)(void) = __metastack_init;
+  __attribute__((section(".preinit_array"),
+                 used)) void (*__metastack_preinit)(void) = __metastack_init;
 }
 #endif
 
 extern "C"
-    __attribute__((visibility("default"))) void *__get_tracked_stack_start() {
+__attribute__((visibility("default"))) void *__get_tracked_stack_start() {
   return unsafe_stack_start;
 }
 
 extern "C"
-    __attribute__((visibility("default"))) void *__get_tracked_stack_ptr() {
+__attribute__((visibility("default"))) void *__get_tracked_stack_ptr() {
   return __metastack_tracked_stack_ptr;
 }

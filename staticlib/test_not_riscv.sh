@@ -11,5 +11,5 @@ clang -I. -I../metapagetable -c -Werror -Wall -flto -fPIC -std=gnu++11 -fno-inli
 clang -I. -I../metapagetable -c -Werror -Wall -flto -fPIC -std=gnu++11 -fno-inline -g -O0 -MMD -o obj/metautils.o metautils.cc
 llvm-ar crv obj/libmetadata.a ./obj/metaset.o ./obj/metacheck.o ./obj/globalinit.o ./obj/argvcopy.o ./obj/compat.o ./obj/metaget.o ./obj/stackinit.o ./obj/metastack.o ./obj/metaglobal.o ./obj/metautils.o
 llvm-ranlib obj/libmetadata.a
-cp obj/*.o /home/jwseo/workspace/MTE/midfat/autosetup.dir/framework/obj/staticlib-dummy
-ls -al /home/jwseo/workspace/MTE/midfat/autosetup.dir/framework/obj/staticlib-dummy/libmetadata.a
+cp obj/* /home/jwseo/workspace/MTE/midfat/autosetup.dir/framework/obj/staticlib-dummy
+ls -al /home/jwseo/workspace/MTE/midfat/autosetup.dir/framework/obj/staticlib-dummy

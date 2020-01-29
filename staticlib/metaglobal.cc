@@ -57,7 +57,9 @@ extern "C" __attribute__((visibility("default")))
 __attribute__((constructor(0)))
 #endif
 void __metaglobal_init() {
+  printf("metaglobal init\n");
     metalloc_init_globals((unsigned long)&__executable_start);
+    printf("metaglobal init ends\n");
 }
                
 #if SANITIZER_CAN_USE_PREINIT_ARRAY

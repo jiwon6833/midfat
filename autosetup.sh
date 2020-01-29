@@ -18,8 +18,9 @@ corecount="`grep '^processor' /proc/cpuinfo|wc -l`"
 : ${EXTRA_CFLAGS:=""}
 : ${EXTRA_LDFLAGS:=""}
 : ${JOBS="$corecount"}
-: ${NO_PACKAGES:=0}
+: ${NO_PACKAGES:=1}
 : ${NO_PERL:=0}
+: ${RISCV:=0}
 
 # framework
 : ${VERSIONGPERFTOOLS=c46eb1f3d2f7a2bdc54a52ff7cf5e7392f5aa668}
@@ -241,7 +242,15 @@ for instance in $INSTANCES; do
 		echo "building gperftools-$instance"
 		run mkdir -p "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
 		cd "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
-		[ -f Makefile ] || run "$PATHAUTOFRAMEWORKSRC/gperftools/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --host=riscv64-unknown-linux-gnu --enable-minimal
+		if [ "$RISCV" -eq 1 ];then
+		    echo "RISCV"
+		   [ -f Makefile ] || run "$PATHAUTOFRAMEWORKSRC/gperftools/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --host=riscv64-unknown-linux-gnu --enable-minimal CXXFLAGS="-fno-inline -g -DRISCV" LDFLAGS="-L/home/jwseo/workspace/MTE/midfat/autosetup.dir/install/common/lib -Wl,--unresolved-symbols=ignore-all"
+		fi
+		if [ "$RISCV" -eq 0 ];then
+		    echo "x86"
+		    [ -f Makefile ] || run "$PATHAUTOFRAMEWORKSRC/gperftools/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --enable-minimal
+		fi 
+
 		run2 make
 		run2 make install
 		;;
@@ -253,14 +262,30 @@ for instance in $INSTANCES; do
 		[ "true" = "$CONFIG_DEEPMETADATA" ] && METALLOC_OPTIONS="$METALLOC_OPTIONS -DDEEPMETADATABYTES=$CONFIG_DEEPMETADATABYTES"
 		[ -n "$CONFIG_ALLOC_SIZE_HOOK" ] && METALLOC_OPTIONS="$METALLOC_OPTIONS -DALLOC_SIZE_HOOK=$CONFIG_ALLOC_SIZE_HOOK"
 		metapagetabledir="$PATHAUTOFRAMEWORKOBJ/metapagetable-$instance"
-		run make OBJDIR="$metapagetabledir" config
-		run make OBJDIR="$metapagetabledir" -j"$JOBS"
+		if [ "$RISCV" -eq 1 ];then
+		    echo "RISCV"
+		   run make TEST=1 OBJDIR="$metapagetabledir" config
+		   run make TEST=1 OBJDIR="$metapagetabledir" -j"$JOBS"
+		fi
+		if [ "$RISCV" -eq 0 ];then
+		    echo "x86"
+		    run make TEST=0 OBJDIR="$metapagetabledir" config
+		    run make TEST=0 OBJDIR="$metapagetabledir" -j"$JOBS"
+		fi
+		
 
 		# Build patched gperftools for new allocator
 		echo "building gperftools-$instance"
 		run mkdir -p "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
 		cd "$PATHAUTOFRAMEWORKOBJ/gperftools-$instance"
-		[ -f Makefile ] || run "$PATHROOT/gperftools-metalloc/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --host=riscv64-unknown-linux-gnu
+		if [ "$RISCV" -eq 1 ];then
+		    echo "RISCV"
+		   [ -f Makefile ] || run "$PATHROOT/gperftools-metalloc/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --host=riscv64-unknown-linux-gnu --enable-minimal CXXFLAGS="-fno-inline -g -DRISCV" LDFLAGS="-L/home/jwseo/workspace/MTE/midfat/autosetup.dir/install/common/lib -Wl,--unresolved-symbols=ignore-all"
+		fi
+		if [ "$RISCV" -eq 0 ];then
+		    echo "x86"
+		    [ -f Makefile ] || run "$PATHROOT/gperftools-metalloc/configure" --prefix="$PATHAUTOPREFIXBASE/$instance" --enable-minimal
+		fi
 		run2 make METAPAGETABLEDIR="$metapagetabledir"
 		run2 make METAPAGETABLEDIR="$metapagetabledir" install
 
